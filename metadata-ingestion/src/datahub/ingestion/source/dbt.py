@@ -38,6 +38,8 @@ class DBTConfig(ConfigModel):
     env: str = "PROD"
     target_platform: str
     load_schemas: bool
+    # Added dataset_filter param to filter out dbt test cases
+    dataset_filter: list
 
 
 class DBTColumn:
@@ -91,6 +93,8 @@ def extract_dbt_entities(
     load_catalog: bool,
     target_platform: str,
     environment: str,
+    # Added dataset_filter param to filter out dbt test cases
+    dataset_filter: list,
 ) -> List[DBTNode]:
     dbt_entities = []
     for key in nodes:
@@ -140,7 +144,8 @@ def extract_dbt_entities(
             environment,
         )
 
-        dbt_entities.append(dbtNode)
+        if dbtNode.node_type not in dataset_filter:
+            dbt_entities.append(dbtNode)
 
     return dbt_entities
 
@@ -151,6 +156,8 @@ def loadManifestAndCatalog(
     load_catalog: bool,
     target_platform: str,
     environment: str,
+    # Added dataset_filter param to filter out dbt test cases
+    dataset_filter: list
 ) -> List[DBTNode]:
     with open(manifest_path, "r") as manifest:
         with open(catalog_path, "r") as catalog:
@@ -173,6 +180,8 @@ def loadManifestAndCatalog(
                 load_catalog,
                 target_platform,
                 environment,
+                # Added dataset_filter param to filter out dbt test cases
+                dataset_filter,
             )
 
             return nodes
@@ -336,6 +345,8 @@ class DBTSource(Source):
             self.config.load_schemas,
             self.config.target_platform,
             self.config.env,
+            # Added dataset_filter param to filter out dbt test cases
+            self.config.dataset_filter,
         )
 
         for node in nodes:
